@@ -1470,6 +1470,7 @@ footer a:hover{text-decoration:underline}
         </div>
       </div>
       <form class="contact-form reveal" novalidate>
+        <input type="hidden" name="access_key" value=""><input type="hidden" name="subject" value="New call-back request via the Beau Rogers Chiropractic website"><input type="hidden" name="from_name" value="Beau Rogers Chiropractic website"><input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
         <h3>Tell us what's going on</h3>
         <label>Your name<input type="text" name="name" autocomplete="name" required></label>
         <label>Phone<input type="tel" name="phone" autocomplete="tel" required></label>
@@ -1688,11 +1689,17 @@ document.addEventListener('click',function(e){
 });
 
 /* ---------- FORM ---------- */
-var form=document.querySelector('.contact-form');
+var form=document.querySelector('.contact-form'), ok=form.querySelector('.form-success');
 form.addEventListener('submit',function(e){
   e.preventDefault();
-  form.querySelector('.form-success').style.display='block';
-  form.querySelector('button[type=submit]').disabled=true;
+  var btn=form.querySelector('button[type=submit]'), keyEl=form.querySelector('[name=access_key]'), key=keyEl?keyEl.value.trim():'';
+  function done(){ok.style.display='block';btn.disabled=true}
+  if(!key){done();return}
+  var label=btn.textContent; btn.disabled=true; btn.textContent='Sending…';
+  var data={}; new FormData(form).forEach(function(v,k){data[k]=v});
+  fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)})
+    .then(function(r){return r.json()}).then(function(j){if(j&&j.success){done()}else{throw new Error('send failed')}})
+    .catch(function(){btn.disabled=false;btn.textContent=label;ok.textContent='Couldn’t send just now — please call the office instead.';ok.style.display='block'});
 });
 })();
 </script>
